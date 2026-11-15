@@ -1,30 +1,50 @@
 import { useState } from "react";
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, useNavigate } from "react-router-dom";
 
 import Ducks from "./Ducks";
 import Login from "./Login";
 import MyProfile from "./MyProfile";
 import Register from "./Register";
-import "./styles/App.css";
 import ProtectedRoute from "./ProtectedRoute";
+import * as auth from "../utils/auth";
+import "./styles/App.css";
 
 function App() {
-  const [isLogged, setIsLogged] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const navigate = useNavigate();
+
+  const handleRegistration = ({
+    username,
+    email,
+    password,
+    confirmPassword,
+  }) => {
+    if (password === confirmPassword) {
+      auth
+        .register(username, password, email)
+        .then(() => {
+          navigate("/login");
+        })
+        .catch(console.error);
+    }
+  };
 
   return (
     <Routes>
       <Route
         path="/ducks"
         element={
-          <ProtectedRoute isLoggedIn={isLogged}>
+          <ProtectedRoute isLoggedIn={isLoggedIn}>
             <Ducks />
           </ProtectedRoute>
         }
       />
+
       <Route
         path="/my-profile"
         element={
-          <ProtectedRoute isLoggedIn={isLogged}>
+          <ProtectedRoute isLoggedIn={isLoggedIn}>
             <MyProfile />
           </ProtectedRoute>
         }
@@ -41,14 +61,14 @@ function App() {
         path="/register"
         element={
           <div className="registerContainer">
-            <Register />
+            <Register handleRegistration={handleRegistration} />
           </div>
         }
       />
       <Route
         path="*"
         element={
-          isLogged ? (
+          isLoggedIn ? (
             <Navigate to="/ducks" replace />
           ) : (
             <Navigate to="/login" replace />
